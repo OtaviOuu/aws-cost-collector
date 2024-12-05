@@ -1,0 +1,43 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: naotem
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: telegram-bot
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: aws-price
+
+provider:
+  name: aws
+  runtime: python3.8
+  region: us-east-1
+  stage: prod
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - "ce:GetCostAndUsage"
+          Resource: "*"
+
+functions:
+  get_cost:
+    handler: handler.get_cost
+    events:
+      # Executa a cada minuto (rate)
+      - schedule:
+          rate: rate(1 minute)
+          enabled: false
+          input: {}
+      # Executa todo dia às 23:00 UTC (cron)
+      - schedule:
+          rate: cron(0 23 * * ? *)
+          enabled: true
+          input: {}
+
+plugins:
+  - serverless-python-requirements
+
+package:
+  patterns:
+    - '!node_modules'
+    - '!venv'
+    - '!*.json'
